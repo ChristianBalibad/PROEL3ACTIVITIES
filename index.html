@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        let bankAccount = {
+            owner: "Maria",
+            balance: 1000,
+            transactions: []
+        }
+
+        function deposit() {
+            let amount = parseFloat(document.getElementById('depositAmount').value);
+            if (amount > 0 ) {
+                bankAccount.balance += amount;
+                bankAccount.transactions.push({type: "Deposit", amount: amount});
+                alert(`Deposited ₱${amount}. New Balance: ₱${bankAccount.balance}`);
+                document.getElementById('depositAmount').value = ''; // Clear input field
+            } else {
+                alert("Deposit amount must be positive.");
+            }
+        }
+
+        function withdraw() {
+            let amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (amount > 0 && amount <= bankAccount.balance) {
+                bankAccount.balance -= amount;
+                bankAccount.transactions.push({type: "Withdraw", amount: amount});
+                alert(`Withdrew ₱${amount}. New Balance: ₱${bankAccount.balance}`);
+                document.getElementById('withdrawAmount').value = ''; // Clear input field
+            } else {
+                alert("Insufficient funds or Invalid amount.");
+            }
+        }
+
+        function showHistory() {
+            let history = "\nTransaction History:\n";
+            for (let i = 0; i < bankAccount.transactions.length; i++){
+                let record = bankAccount.transactions[i];
+                history += `${i + 1}. ${record.type}: ₱${record.amount}\n`;
+            }
+            alert(history);
+        }
+    </script>
+    <title>Simple Bank</title>
+</head>
+<body>
+    <h1 style="text-align: center;">Prof Z. Bank</h1>
+    <div style="text-align: center; margin-top: 20px;">
+        <label for="depositAmount">Deposit Amount: </label>
+        <input type="number" id="depositAmount" placeholder="Enter amount to deposit">
+        <button onclick="deposit()">Deposit</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <label for="withdrawAmount">Withdraw Amount: </label>
+        <input type="number" id="withdrawAmount" placeholder="Enter amount to withdraw">
+        <button onclick="withdraw()">Withdraw</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button onclick="showHistory()">Show Transaction History</button>
+    </div>
+</body>
+</html>
