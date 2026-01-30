@@ -1,10 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { FlatList, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type TodoItem = {
   id: string;
@@ -15,8 +10,10 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+const fallbackDrafts = ['Buy groceries', 'Finish activity', 'Read docs', 'Practice hooks'];
+
 export default function TodoListScreen() {
-  const [taskText, setTaskText] = useState('');
+  const [taskText, setTaskText] = useState('Buy groceries');
   const [tasks, setTasks] = useState<TodoItem[]>([]);
 
   const canAdd = useMemo(() => taskText.trim().length > 0, [taskText]);
@@ -33,119 +30,156 @@ export default function TodoListScreen() {
     setTasks((current) => current.filter((t) => t.id !== id));
   }
 
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#E8F0FE', dark: '#0F172A' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#2563EB"
-          name="checklist"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">Todo List</ThemedText>
-        <ThemedText type="subtitle">Local State with useState</ThemedText>
+  function editDraft() {
+    if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+      const next = window.prompt('Enter a task', taskText);
+      if (next !== null) setTaskText(next);
+      return;
+    }
 
-        <View style={styles.row}>
-          <TextInput
-            value={taskText}
-            onChangeText={setTaskText}
-            placeholder="Enter a task..."
-            placeholderTextColor="#7A7A7A"
-            style={styles.input}
-            onSubmitEditing={addTask}
-            returnKeyType="done"
-          />
-          <Pressable
-            onPress={addTask}
-            disabled={!canAdd}
-            style={({ pressed }) => [
-              styles.addButton,
-              !canAdd ? styles.addButtonDisabled : null,
-              pressed && canAdd ? styles.addButtonPressed : null,
-            ]}>
-            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+    const currentIndex = Math.max(0, fallbackDrafts.indexOf(taskText));
+    const next = (currentIndex + 1) % fallbackDrafts.length;
+    setTaskText(fallbackDrafts[next]);
+  }
+
+  return (
+    <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
+      <View style={styles.header}>
+        <Image
+          source={require('@/assets/images/react-logo.png')}
+          style={styles.headerImage}
+          resizeMode="contain"
+        />
+      </View>
+
+      <View style={styles.container}>
+        <Text style={styles.title}>Todo List</Text>
+        <Text style={styles.subtitle}>Local State with useState</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>Draft</Text>
+          <Text style={styles.draftText}>{taskText || 'Tap “Edit draft” to pick a task'}</Text>
+
+          <View style={styles.row}>
+            <Text style={styles.button} onPress={editDraft}>
+              Edit draft
+            </Text>
+            <Text
+              style={[styles.button, !canAdd ? styles.buttonDisabled : null]}
+              onPress={canAdd ? addTask : undefined}>
               Add
-            </ThemedText>
-          </Pressable>
+            </Text>
+          </View>
         </View>
 
-        <ThemedView style={styles.list}>
-          {tasks.length === 0 ? (
-            <ThemedText>Nothing yet. Add your first task above.</ThemedText>
-          ) : (
-            tasks.map((task) => (
-              <ThemedView key={task.id} style={styles.taskRow}>
-                <ThemedText style={styles.taskText}>{task.text}</ThemedText>
-                <Pressable
-                  onPress={() => removeTask(task.id)}
-                  style={({ pressed }) => [styles.removeButton, pressed ? styles.removePressed : null]}>
-                  <ThemedText type="defaultSemiBold" style={styles.removeText}>
-                    Remove
-                  </ThemedText>
-                </Pressable>
-              </ThemedView>
-            ))
-          )}
-        </ThemedView>
-      </ThemedView>
-    </ParallaxScrollView>
+        <Text style={styles.sectionTitle}>Tasks</Text>
+
+        {tasks.length === 0 ? (
+          <Text style={styles.muted}>Nothing yet. Add your first task above.</Text>
+        ) : (
+          <FlatList
+            data={tasks}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            contentContainerStyle={styles.list}
+            renderItem={({ item }) => (
+              <View style={styles.taskRow}>
+                <Text style={styles.taskText}>{item.text}</Text>
+                <Text style={[styles.button, styles.removeButton]} onPress={() => removeTask(item.id)}>
+                  Remove
+                </Text>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  pageContent: {
+    paddingBottom: 28,
+  },
+  header: {
+    height: 180,
+    backgroundColor: '#E8F0FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerImage: {
-    opacity: 0.2,
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+    width: 120,
+    height: 120,
+    opacity: 0.9,
   },
   container: {
     gap: 12,
-    paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  card: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  draftText: {
+    fontSize: 16,
+    color: '#0F172A',
   },
   row: {
     flexDirection: 'row',
     gap: 10,
-    alignItems: 'center',
+    flexWrap: 'wrap',
   },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 10,
+  button: {
+    backgroundColor: '#0A7EA4',
+    color: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#111827',
-    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    fontWeight: '700',
   },
-  addButton: {
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: '#0A7EA4',
+  buttonDisabled: {
+    opacity: 0.45,
   },
-  addButtonDisabled: {
-    opacity: 0.5,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 4,
   },
-  addButtonPressed: {
-    opacity: 0.85,
-  },
-  buttonText: {
-    color: '#FFFFFF',
+  muted: {
+    color: '#475569',
   },
   list: {
     gap: 10,
-    paddingTop: 6,
   },
   taskRow: {
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -155,18 +189,10 @@ const styles = StyleSheet.create({
   },
   taskText: {
     flex: 1,
+    color: '#0F172A',
   },
   removeButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
     backgroundColor: '#EF4444',
-  },
-  removePressed: {
-    opacity: 0.85,
-  },
-  removeText: {
-    color: '#FFFFFF',
   },
 });
 

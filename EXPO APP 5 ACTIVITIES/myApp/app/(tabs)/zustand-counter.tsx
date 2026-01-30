@@ -1,10 +1,5 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { create } from 'zustand';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 
 type CounterStore = {
   count: number;
@@ -18,66 +13,73 @@ const useCounterStore = create<CounterStore>((set) => ({
   decrement: () => set((s) => ({ count: s.count - 1 })),
 }));
 
-function ActionButton({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.button, pressed ? styles.pressed : null]}>
-      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function ZustandCounterScreen() {
   const count = useCounterStore((s) => s.count);
   const increment = useCounterStore((s) => s.increment);
   const decrement = useCounterStore((s) => s.decrement);
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#FDF2F8', dark: '#3B0764' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#BE185D"
-          name="bolt.fill"
+    <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
+      <View style={styles.header}>
+        <Image
+          source={require('@/assets/images/react-logo.png')}
           style={styles.headerImage}
+          resizeMode="contain"
         />
-      }>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">Counter</ThemedText>
-        <ThemedText type="subtitle">State with Zustand</ThemedText>
+      </View>
 
-        <ThemedView style={styles.card}>
-          <ThemedText type="title">{count}</ThemedText>
+      <View style={styles.container}>
+        <Text style={styles.title}>Counter</Text>
+        <Text style={styles.subtitle}>State with Zustand</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.count}>{count}</Text>
           <View style={styles.row}>
-            <ActionButton label="Decrement" onPress={decrement} />
-            <ActionButton label="Increment" onPress={increment} />
+            <Text style={styles.button} onPress={decrement}>
+              Decrement
+            </Text>
+            <Text style={styles.button} onPress={increment}>
+              Increment
+            </Text>
           </View>
-        </ThemedView>
-      </ThemedView>
-    </ParallaxScrollView>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  pageContent: {
+    paddingBottom: 28,
+  },
+  header: {
+    height: 180,
+    backgroundColor: '#FDF2F8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerImage: {
-    opacity: 0.2,
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+    width: 120,
+    height: 120,
+    opacity: 0.9,
   },
   container: {
     gap: 12,
-    paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#334155',
   },
   card: {
     borderWidth: 1,
@@ -86,6 +88,11 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
     alignItems: 'center',
+  },
+  count: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   row: {
     flexDirection: 'row',
@@ -96,12 +103,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     backgroundColor: '#0A7EA4',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  buttonText: {
     color: '#FFFFFF',
+    fontWeight: '700',
+    overflow: 'hidden',
   },
 });
 

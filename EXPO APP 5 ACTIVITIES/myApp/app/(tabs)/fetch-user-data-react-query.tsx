@@ -1,11 +1,6 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 
 type User = {
   id: number;
@@ -29,31 +24,27 @@ function UserCard() {
   });
 
   return (
-    <ThemedView style={styles.card}>
+    <View style={styles.card}>
       {userQuery.isLoading ? (
-        <ThemedText>Loading user...</ThemedText>
+        <Text style={styles.muted}>Loading user...</Text>
       ) : userQuery.isError ? (
-        <ThemedText>Something went wrong. Try again.</ThemedText>
+        <Text style={styles.muted}>Something went wrong. Try again.</Text>
       ) : !userQuery.data ? (
-        <ThemedText>No user data.</ThemedText>
+        <Text style={styles.muted}>No user data.</Text>
       ) : (
         <>
-          <ThemedText type="subtitle">{userQuery.data.name}</ThemedText>
-          <ThemedText>@{userQuery.data.username}</ThemedText>
-          <ThemedText>{userQuery.data.email}</ThemedText>
+          <Text style={styles.userName}>{userQuery.data.name}</Text>
+          <Text style={styles.userLine}>@{userQuery.data.username}</Text>
+          <Text style={styles.userLine}>{userQuery.data.email}</Text>
         </>
       )}
 
       <View style={styles.row}>
-        <Pressable
-          onPress={() => userQuery.refetch()}
-          style={({ pressed }) => [styles.button, pressed ? styles.pressed : null]}>
-          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-            Refetch
-          </ThemedText>
-        </Pressable>
+        <Text style={styles.button} onPress={() => userQuery.refetch()}>
+          Refetch
+        </Text>
       </View>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -61,40 +52,59 @@ export default function FetchUserDataReactQueryScreen() {
   const client = useMemo(() => queryClient, []);
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#F0FDFA', dark: '#042F2E' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#0F766E"
-          name="cloud.fill"
+    <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
+      <View style={styles.header}>
+        <Image
+          source={require('@/assets/images/react-logo.png')}
           style={styles.headerImage}
+          resizeMode="contain"
         />
-      }>
+      </View>
+
       <QueryClientProvider client={client}>
-        <ThemedView style={styles.container}>
-          <ThemedText type="title">Fetch User Data</ThemedText>
-          <ThemedText type="subtitle">State with React Query (Server State)</ThemedText>
+        <View style={styles.container}>
+          <Text style={styles.title}>Fetch User Data</Text>
+          <Text style={styles.subtitle}>State with React Query (Server State)</Text>
 
           <UserCard />
-        </ThemedView>
+        </View>
       </QueryClientProvider>
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  pageContent: {
+    paddingBottom: 28,
+  },
+  header: {
+    height: 180,
+    backgroundColor: '#F0FDFA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerImage: {
-    opacity: 0.2,
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+    width: 120,
+    height: 120,
+    opacity: 0.9,
   },
   container: {
     gap: 12,
-    paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#334155',
   },
   card: {
     borderWidth: 1,
@@ -102,6 +112,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     gap: 8,
+  },
+  muted: {
+    color: '#475569',
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  userLine: {
+    color: '#0F172A',
   },
   row: {
     flexDirection: 'row',
@@ -114,12 +135,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#0A7EA4',
     alignSelf: 'flex-start',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  buttonText: {
     color: '#FFFFFF',
+    fontWeight: '700',
+    overflow: 'hidden',
   },
 });
 

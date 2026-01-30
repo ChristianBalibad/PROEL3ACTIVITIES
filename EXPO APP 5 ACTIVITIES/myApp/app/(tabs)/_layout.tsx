@@ -17,6 +17,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen
         name="todo-list"
         options={{

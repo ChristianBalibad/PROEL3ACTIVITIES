@@ -1,10 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type AppTheme = 'light' | 'dark';
 
@@ -25,28 +20,23 @@ function useTheme() {
 
 function ThemeCard() {
   const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <ThemedView
-      style={[
-        styles.card,
-        theme === 'dark' ? styles.darkCard : styles.lightCard,
-      ]}>
-      <ThemedText type="subtitle" style={theme === 'dark' ? styles.darkText : styles.lightText}>
+    <View style={[styles.card, isDark ? styles.darkCard : styles.lightCard]}>
+      <Text style={[styles.cardTitle, isDark ? styles.darkText : styles.lightText]}>
         Current theme: {theme}
-      </ThemedText>
-      <ThemedText style={theme === 'dark' ? styles.darkMuted : styles.lightMuted}>
+      </Text>
+      <Text style={isDark ? styles.darkMuted : styles.lightMuted}>
         This is a local theme managed with Context API.
-      </ThemedText>
+      </Text>
 
       <View style={styles.row}>
-        <Pressable onPress={toggleTheme} style={({ pressed }) => [styles.button, pressed ? styles.pressed : null]}>
-          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-            Toggle theme
-          </ThemedText>
-        </Pressable>
+        <Text style={styles.button} onPress={toggleTheme}>
+          Toggle theme
+        </Text>
       </View>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -62,40 +52,64 @@ export default function ThemeTogglerScreen() {
   );
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#FFF7ED', dark: '#431407' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#EA580C"
-          name="moon.stars.fill"
+    <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
+      <View style={[styles.header, theme === 'dark' ? styles.headerDark : styles.headerLight]}>
+        <Image
+          source={require('@/assets/images/react-logo.png')}
           style={styles.headerImage}
+          resizeMode="contain"
         />
-      }>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">Theme Toggler</ThemedText>
-        <ThemedText type="subtitle">State with Context API</ThemedText>
+      </View>
+
+      <View style={styles.container}>
+        <Text style={styles.title}>Theme Toggler</Text>
+        <Text style={styles.subtitle}>State with Context API</Text>
 
         <ThemeContext.Provider value={value}>
           <ThemeCard />
         </ThemeContext.Provider>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  pageContent: {
+    paddingBottom: 28,
+  },
+  header: {
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerLight: {
+    backgroundColor: '#FFF7ED',
+  },
+  headerDark: {
+    backgroundColor: '#431407',
+  },
   headerImage: {
-    opacity: 0.2,
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+    width: 120,
+    height: 120,
+    opacity: 0.9,
   },
   container: {
     gap: 12,
-    paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#334155',
   },
   card: {
     borderWidth: 1,
@@ -111,17 +125,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B1220',
     borderColor: '#1F2937',
   },
+  lightMuted: {
+    color: '#334155',
+  },
+  darkMuted: {
+    color: '#94A3B8',
+  },
   lightText: {
     color: '#0F172A',
   },
   darkText: {
     color: '#E5E7EB',
   },
-  lightMuted: {
-    color: '#334155',
-  },
-  darkMuted: {
-    color: '#94A3B8',
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '800',
   },
   row: {
     flexDirection: 'row',
@@ -134,12 +152,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#0A7EA4',
     alignSelf: 'flex-start',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  buttonText: {
     color: '#FFFFFF',
+    fontWeight: '700',
+    overflow: 'hidden',
   },
 });
 
