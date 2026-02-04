@@ -4,31 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        body{font-family:Segoe UI,Roboto,Arial;margin:24px}
+        .container{max-width:640px;margin:0 auto}
+        label{display:block;margin-bottom:8px}
+        input,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
+        button{padding:10px 14px;border-radius:6px;border:none;background:#0066ff;color:#fff}
+        #messages{margin-top:24px}
+        .msg{border:1px solid #e1e4ea;padding:12px;border-radius:6px;margin-bottom:12px;background:#f9f9fb}
+        .msg strong{display:block;font-size:1.05em;margin-bottom:6px}
+        .meta{color:#666;font-size:0.9em}
+    </style>
 </head>
 <body>
-    <center>
-
-        <form method="POST" action="https://christianbalibad.app.n8n.cloud/webhook-test/send-email">
-            <label>
-                Title
+    <div class="container">
+        <h2>Send to n8n webhook</h2>
+        <form id="webhookForm" method="POST" action="https://christianbalibad.app.n8n.cloud/webhook-test/send-email">
+            <label>Title
                 <input type="text" name="title" required>
             </label>
-            <br><br>
-    
-            <label>
-                Email:
+
+            <label>Email:
                 <input type="email" name="email" required>
             </label>
-            <br><br>
-    
-            <label>
-                Message:
+
+            <label>Message:
                 <textarea name="message" rows="4"></textarea>
             </label>
-            <br><br>
-    
-            <button type="submit">Send</button>
+
+            <div style="margin-top:12px">
+                <button type="submit">Send</button>
+            </div>
         </form>
-    </center>
+
+        <div id="messages" aria-live="polite"></div>
+    </div>
+
+    <script>
+        function escapeHtml(s){
+            return String(s||'').replace(/[&<>"'`]/g, function(c){
+                return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"`":'&#96;' }[c];
+            });
+        }
+
+        const form = document.getElementById('webhookForm');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            const url = form.action;
+            const fd = new FormData(form);
+            const payload = {};
+            fd.forEach((v,k)=> payload[k]=v);
+
+            const btn = form.querySelector('button[type="submit"]');
+            const prev = btn.textContent;
+            btn.disabled = true; btn.textContent = 'Sending...';
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) {
+                    const txt = await resp.text();
+                    throw new Error(txt || resp.statusText);
+                }
+
+                const card = document.createElement('div');
+                card.className = 'msg';
+                card.innerHTML = `<strong>${escapeHtml(payload.title)}</strong>` +
+                                 `<div class="meta">${escapeHtml(payload.email)} • ${new Date().toLocaleString()}</div>` +
+                                 `<p>${escapeHtml(payload.message)}</p>`;
+                messages.prepend(card);
+                form.reset();
+            } catch(err){
+                alert('Error sending to webhook: ' + (err.message || err));
+            } finally {
+                btn.disabled = false; btn.textContent = prev;
+            }
+        });
+    </script>
 </body>
 </html>
